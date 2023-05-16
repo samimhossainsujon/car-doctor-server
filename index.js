@@ -1,5 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+var jwt = require('jsonwebtoken');
+
+
+
+
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
@@ -25,12 +30,59 @@ const client = new MongoClient(uri, {
     }
 });
 
+//============================
+//JWT verification
+//============================
+
+const veryfyJWT = (req, res, next) => {
+    console.log('hitting veryfy jwt');
+    console.log(req.headers.authorization);
+
+    const authorization = req.headers.authorization;
+    if (!authorization) {
+        return res.status(401).send({ error: true, message: 'unauthorized access' })
+    }
+    const token = authorization.split(' ')[1];
+    console.log('token inside verify jwt', token);
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+        if (error) {
+            return res.status(401).send({ error: true, message: 'unauthorized access' })
+        }
+
+        req.decoded = decoded;
+        next();
+    })
+
+}
+
+
+
+
 async function run() {
     try {
         await client.connect();
 
         const serviceCollection = client.db('Car-Doctor').collection('serveises');
         const bookingCollection = client.db('Car-Doctor').collection('bookings');
+
+        //=============================
+        //jwt authorization
+        //=============================
+
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            console.log(user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1h'
+            });
+            console.log(token);
+            res.send({ token });
+        });
+
+
+        //============================
+        //services Service section
+        //============================
 
         app.get('/services', async (req, res) => {
             const cursor = serviceCollection.find();
@@ -56,8 +108,9 @@ async function run() {
         //bookings Service section
         //==============================================
 
-        app.get('/bookings', async (req, res) => {
-            console.log(req.query.email);
+        app.get('/bookings', veryfyJWT, async (req, res) => {
+            // console.log(req.headers.authorization);
+            console.log('come back after verification');
             let query = {}
             if (req.query?.email) {
                 query = { email: req.query.email }
@@ -90,8 +143,8 @@ async function run() {
                     status: updatedBooking.status
                 },
             };
-            const result = 
-            await bookingCollection.updateOne(filter, updateDoc);
+            const result =
+                await bookingCollection.updateOne(filter, updateDoc);
             res.send(result);
 
         })
