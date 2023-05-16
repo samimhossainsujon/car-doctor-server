@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buidls": [
+  "builds": [
     {
       "src": "./index.js",
       "use": "@vercel/node"
@@ -9,9 +9,8 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "./",
-      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
-
+      "dest": "/index.js",
+      "methods": ["GET", "POST", "DELETE", "PATCH", "OPTIONS"]
     }
   ]
 }
