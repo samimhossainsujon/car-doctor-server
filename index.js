@@ -56,7 +56,7 @@ const verifyJWT = (req, res, next) => {
 
 async function run() {
     try {
-        await client.connect();
+        // await client.connect();
 
         const serviceCollection = client.db('Car-Doctor').collection('serveises');
         const bookingCollection = client.db('Car-Doctor').collection('bookings');
@@ -102,17 +102,17 @@ async function run() {
         app.get("/bookings", verifyJWT, async (req, res) => {
             let query = {};
             if (req.query?.email) {
-              query = { email: req.query.email };
+                query = { email: req.query.email };
             }
             const result = await bookingCollection.find(query).toArray();
             res.send(result);
-          });
+        });
 
-          app.post("/bookings", async (req, res) => {
+        app.post("/bookings", async (req, res) => {
             const booking = req.body;
             const result = await bookingCollection.insertOne(booking);
             res.send(result);
-          });
+        });
 
 
         //==============================
@@ -137,9 +137,6 @@ async function run() {
         })
 
 
-
-
-
         //================================
         //bookings service delete section
         //================================
@@ -151,13 +148,6 @@ async function run() {
             res.send(result);
         })
 
-
-
-
-
-
-
-
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
@@ -168,18 +158,8 @@ async function run() {
 run().catch(console.dir);
 
 
-
-
 //===============================
 //mongodb used close
-
-
-
-
-
-
-
-
 
 app.get('/', (req, res) => {
     res.send('Doctor is available')
